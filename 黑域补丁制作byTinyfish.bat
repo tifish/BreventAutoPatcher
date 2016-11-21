@@ -18,9 +18,20 @@
 @echo.
 
 :CHECK_ENV
+@reg query "HKEY_LOCAL_MACHINE\SOFTWARE\Python\PythonCore" >nul 2>nul
+@if "%errorlevel%"=="0" (
+	for /f "tokens=*" %%a in ('reg query "HKEY_LOCAL_MACHINE\SOFTWARE\Python\PythonCore"') do @set pythonVersionReg=%%a
+	for /f "tokens=2*" %%a in ('reg query "!pythonVersionReg!\InstallPath" /ve') do @set pythonPath=%%b
+)
 
-@for /f "tokens=*" %%a in ('reg query "HKEY_LOCAL_MACHINE\SOFTWARE\Python\PythonCore"') do @set pythonVersionReg=%%a
-@for /f "tokens=2*" %%a in ('reg query "%pythonVersionReg%\InstallPath" /ve') do @set pythonPath=%%b
+@if "%pythonPath%"=="" (
+	reg query "HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Python\PythonCore" >nul 2>nul
+	if "%errorlevel%"=="0" (
+		for /f "tokens=*" %%a in ('reg query "HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Python\PythonCore"') do @set pythonVersionReg=%%a
+		for /f "tokens=2*" %%a in ('reg query "!pythonVersionReg!\InstallPath" /ve') do @set pythonPath=%%b
+	)
+)
+
 @echo PythonÂ·¾¶: %pythonPath%
 @if exist "%pythonPath%python.exe" set path=%pythonPath%;%path%
 
@@ -33,8 +44,20 @@
 	exit /b
 )
 
-@for /f "tokens=*" %%a in ('reg query "HKEY_LOCAL_MACHINE\SOFTWARE\JavaSoft\Java Development Kit"') do @set jdkVersionReg=%%a
-@for /f "tokens=2*" %%a in ('reg query "%jdkVersionReg%" /v JavaHome') do @set jdkPath=%%b
+@reg query "HKEY_LOCAL_MACHINE\SOFTWARE\JavaSoft\Java Development Kit" >nul 2>nul
+@if "%errorlevel%"=="0" (
+	for /f "tokens=*" %%a in ('reg query "HKEY_LOCAL_MACHINE\SOFTWARE\JavaSoft\Java Development Kit"') do @set jdkVersionReg=%%a
+	for /f "tokens=2*" %%a in ('reg query "!jdkVersionReg!" /v JavaHome') do @set jdkPath=%%b
+)
+
+@if "%jdkPath%"=="" (
+	reg query "HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\JavaSoft\Java Development Kit" >nul 2>nul
+	if "%errorlevel%"=="0" (
+		for /f "tokens=*" %%a in ('reg query "HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\JavaSoft\Java Development Kit"') do @set jdkVersionReg=%%a
+		for /f "tokens=2*" %%a in ('reg query "!jdkVersionReg!" /v JavaHome') do @set jdkPath=%%b
+	)
+)
+
 @echo JDKÂ·¾¶£º%jdkPath%
 @if exist "%jdkPath%\bin\jar.exe" set path=%jdkPath%\bin;%path%
 
