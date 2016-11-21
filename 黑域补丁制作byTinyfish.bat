@@ -210,7 +210,7 @@ adb push services.jar /sdcard/
 	echo.
 	echo   * 手机已经root。
 	echo.
-	echo   * adb已获得root权限。可能是手机屏幕上提示需要确认，CM系统可能需要在开发者选项中允许adb root。
+	echo   * adb已获得root权限。可能是手机屏幕上提示需要确认，CM系统可能需要在开发者选项中允许adb root，SuperSU可能需要关闭“分类挂载命名空间。
 	echo.
 	echo   如果adb无法获得root权限，你也可以手工拷贝services.jar到/system/framework/中。
 	echo.
