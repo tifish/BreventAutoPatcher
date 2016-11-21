@@ -225,7 +225,7 @@ adb push services.jar /sdcard/
 
 :CHECK_ROOT
 @adb shell su -c "chmod 666 /data/data/com.android.providers.contacts/databases/contacts2.db"
-@for /f "tokens=1" %%a in ('adb shell ls -l /data/data/com.android.providers.contacts/databases/contacts2.db') do @set mod=%%a
+@for /f "tokens=1" %%a in ('adb shell su -c "ls -l /data/data/com.android.providers.contacts/databases/contacts2.db"') do @set mod=%%a
 @adb shell su -c "chmod 660 /data/data/com.android.providers.contacts/databases/contacts2.db"
 @if not "%mod%"=="-rw-rw-rw-" (
 	echo.
