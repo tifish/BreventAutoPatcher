@@ -1,0 +1,11 @@
+Python：
+https://www.python.org/ftp/python/2.7.12/python-2.7.12.msi
+
+JDK：
+http://download.oracle.com/otn-pub/java/jdk/8u112-b15/jdk-8u112-windows-i586.exe
+
+ADB驱动（安装方法请自行百度）：
+http://download.clockworkmod.com/test/UniversalAdbDriverSetup.msi
+
+手机允许ADB调试和root：
+http://www.shuame.com/faq/usb-connect/9-usb.html
