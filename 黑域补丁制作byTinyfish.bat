@@ -248,7 +248,11 @@ echo.
 python patch.py -a apk -s services
 if errorlevel 1 echo 打补丁出错。& pause & exit /b
 echo.
-echo   请确认打补丁是否成功，如果成功请按任意键继续，否则请检查错误并直接关闭本工具。
+echo   请确认打补丁是否成功：
+echo.
+echo   * 注意！！！少打了补丁可能会导致手机无法启动！除非你很清楚这没问题，或者是刷机高手无所谓，否则请点右上角的X直接关闭本工具。
+echo.
+echo   * 如果成功请按任意键继续。
 pause >nul
 
 echo.
