@@ -1,7 +1,5 @@
 @echo off
-@setlocal EnableDelayedExpansion
-@echo off
-
+setlocal EnableDelayedExpansion
 color 3f
 
 title 黑域补丁自动制作 2.8 by Tinyfish
@@ -167,10 +165,8 @@ if "!UseAdb!"=="1" (
 
 	adb pull /system/framework/services.jar
 
-	adb shell ls -lR /system/framework|find "services.odex">ls.tmp
-	for /f "tokens=7" %%a in (ls.tmp) do set file=%%a
-	del /q ls.tmp >nul
-	if "!file!"=="services.odex" (
+	for /f "tokens=*" %%a in ('adb shell ls -lR /system/framework^|find "services.odex"') do set odexFile=%%a
+	if not "!odexFile!"=="" (
 		if not exist odex md odex
 		pushd .
 		cd odex
