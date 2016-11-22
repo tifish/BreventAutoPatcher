@@ -14,6 +14,7 @@ echo   * 区分处理jar和odex的情况。
 echo   * 支持Android 4.x~7.x。
 echo   * 安装黑域app。
 echo   * 清理临时文件。
+echo   * 支持手工制作补丁。
 
 set UseAdb=1
 if /i "%~1"=="NoAdb" (
