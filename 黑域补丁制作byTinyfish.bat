@@ -95,16 +95,27 @@ where jar
 @echo   Adb状态: %adbState%
 @if not "%adbState%"=="device" (
 	echo.
-	echo   无法连接adb，请确保：
+	echo   尝试添加adb vendor id。。。
+	call "%~dp0AddAndroidVendorID.cmd"
+	adb kill-server
+	ping -n 2 127.0.0.1 >nul
+	
+	for /f "tokens=*" %%t in ('adb get-state') do @set adbState=%%t
 	echo.
-	echo   * 电脑已安装adb驱动（http://download.clockworkmod.com/test/UniversalAdbDriverSetup.msi）。
-	echo.
-	echo   * 手机允许ADB调试和root（http://www.shuame.com/faq/usb-connect/9-usb.html）。
-	echo.
-	echo   * 把手机接上USB。
-	echo.
-	pause
-	goto :CHECK_ENV
+	echo   Adb状态: !adbState!
+	if not "!adbState!"=="device" (
+		echo.
+		echo   无法连接adb，请确保：
+		echo.
+		echo   * 电脑已安装adb驱动（http://download.clockworkmod.com/test/UniversalAdbDriverSetup.msi）。
+		echo.
+		echo   * 手机允许ADB调试和root（http://www.shuame.com/faq/usb-connect/9-usb.html）。
+		echo.
+		echo   * 把手机接上USB。
+		echo.
+		pause
+		goto :CHECK_ENV
+	)
 )
 
 @for /f "tokens=1 delims=." %%t in ('adb shell getprop ro.build.version.release') do @set androidVersion=%%t
