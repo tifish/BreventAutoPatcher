@@ -1,6 +1,7 @@
 @setlocal EnableDelayedExpansion
 
 @color 3f
+
 @title 黑域补丁自动制作 2.6 by Tinyfish
 @echo =================================================
 @echo   此脚本一键制作黑域内核补丁，功能包括：
@@ -18,24 +19,25 @@
 @echo.
 
 :CHECK_ENV
-@reg query "HKEY_LOCAL_MACHINE\SOFTWARE\Python\PythonCore" >nul 2>nul
+reg query "HKEY_LOCAL_MACHINE\SOFTWARE\Python\PythonCore"
 @if "%errorlevel%"=="0" (
 	for /f "tokens=*" %%a in ('reg query "HKEY_LOCAL_MACHINE\SOFTWARE\Python\PythonCore"') do @set pythonVersionReg=%%a
 	for /f "tokens=2*" %%a in ('reg query "!pythonVersionReg!\InstallPath" /ve') do @set pythonPath=%%b
 )
 
 @if "%pythonPath%"=="" (
-	reg query "HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Python\PythonCore" >nul 2>nul
+	reg query "HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Python\PythonCore"
 	if "%errorlevel%"=="0" (
 		for /f "tokens=*" %%a in ('reg query "HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Python\PythonCore"') do @set pythonVersionReg=%%a
 		for /f "tokens=2*" %%a in ('reg query "!pythonVersionReg!\InstallPath" /ve') do @set pythonPath=%%b
 	)
 )
 
-@echo Python路径: %pythonPath%
+@echo.
+@echo   Python路径: %pythonPath%
 @if exist "%pythonPath%python.exe" set path=%pythonPath%;%path%
 
-@where python >nul 2>nul
+where python
 @if "%errorlevel%"=="1" (
 	echo.
 	echo   未安装Python，请自行下载安装（https://www.python.org/ftp/python/2.7.12/python-2.7.12.msi）
@@ -44,24 +46,25 @@
 	exit /b
 )
 
-@reg query "HKEY_LOCAL_MACHINE\SOFTWARE\JavaSoft\Java Development Kit" >nul 2>nul
+reg query "HKEY_LOCAL_MACHINE\SOFTWARE\JavaSoft\Java Development Kit"
 @if "%errorlevel%"=="0" (
 	for /f "tokens=*" %%a in ('reg query "HKEY_LOCAL_MACHINE\SOFTWARE\JavaSoft\Java Development Kit"') do @set jdkVersionReg=%%a
 	for /f "tokens=2*" %%a in ('reg query "!jdkVersionReg!" /v JavaHome') do @set jdkPath=%%b
 )
 
 @if "%jdkPath%"=="" (
-	reg query "HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\JavaSoft\Java Development Kit" >nul 2>nul
+	reg query "HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\JavaSoft\Java Development Kit"
 	if "%errorlevel%"=="0" (
 		for /f "tokens=*" %%a in ('reg query "HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\JavaSoft\Java Development Kit"') do @set jdkVersionReg=%%a
 		for /f "tokens=2*" %%a in ('reg query "!jdkVersionReg!" /v JavaHome') do @set jdkPath=%%b
 	)
 )
 
-@echo JDK路径：%jdkPath%
+@echo.
+@echo   JDK路径：%jdkPath%
 @if exist "%jdkPath%\bin\jar.exe" set path=%jdkPath%\bin;%path%
 
-@where jar >nul 2>nul
+where jar
 @if "%errorlevel%"=="1" (
 	echo.
 	echo   未安装JDK，请自行下载安装（http://download.oracle.com/otn-pub/java/jdk/8u112-b15/jdk-8u112-windows-i586.exe）
@@ -71,6 +74,8 @@
 )
 
 @for /f "tokens=*" %%t in ('adb get-state') do @set adbState=%%t
+@echo.
+@echo   Adb状态: %adbState%
 @if not "%adbState%"=="device" (
 	echo.
 	echo   无法连接adb，请确保：
