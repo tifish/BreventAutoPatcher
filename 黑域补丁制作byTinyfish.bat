@@ -19,17 +19,26 @@
 @echo.
 
 :CHECK_ENV
+
 reg query "HKEY_LOCAL_MACHINE\SOFTWARE\Python\PythonCore"
-@if "%errorlevel%"=="0" (
-	for /f "tokens=*" %%a in ('reg query "HKEY_LOCAL_MACHINE\SOFTWARE\Python\PythonCore"') do @set pythonVersionReg=%%a
-	for /f "tokens=2*" %%a in ('reg query "!pythonVersionReg!\InstallPath" /ve') do @set pythonPath=%%b
+@if not errorlevel 1 (
+	for /f "tokens=*" %%a in ('reg query "HKEY_LOCAL_MACHINE\SOFTWARE\Python\PythonCore"') do @(
+		set pythonVersionReg=%%a
+		for /f "tokens=2*" %%a in ('reg query "!pythonVersionReg!\InstallPath" /ve 2^>nul') do @(
+			if exist "%%bpython.exe" set pythonPath=%%b
+		)
+	)
 )
 
 @if "%pythonPath%"=="" (
 	reg query "HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Python\PythonCore"
-	if "%errorlevel%"=="0" (
-		for /f "tokens=*" %%a in ('reg query "HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Python\PythonCore"') do @set pythonVersionReg=%%a
-		for /f "tokens=2*" %%a in ('reg query "!pythonVersionReg!\InstallPath" /ve') do @set pythonPath=%%b
+	if not errorlevel 1 (
+		for /f "tokens=*" %%a in ('reg query "HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Python\PythonCore"') do @(
+			set pythonVersionReg=%%a
+			for /f "tokens=2*" %%a in ('reg query "!pythonVersionReg!\InstallPath" /ve 2^>nul') do @(
+				if exist "%%bpython.exe" set pythonPath=%%b
+			)
+		)
 	)
 )
 
@@ -38,7 +47,7 @@ reg query "HKEY_LOCAL_MACHINE\SOFTWARE\Python\PythonCore"
 @if exist "%pythonPath%python.exe" set path=%pythonPath%;%path%
 
 where python
-@if "%errorlevel%"=="1" (
+@if errorlevel 1 (
 	echo.
 	echo   未安装Python，请自行下载安装（https://www.python.org/ftp/python/2.7.12/python-2.7.12.msi）
 	echo.
@@ -47,16 +56,24 @@ where python
 )
 
 reg query "HKEY_LOCAL_MACHINE\SOFTWARE\JavaSoft\Java Development Kit"
-@if "%errorlevel%"=="0" (
-	for /f "tokens=*" %%a in ('reg query "HKEY_LOCAL_MACHINE\SOFTWARE\JavaSoft\Java Development Kit"') do @set jdkVersionReg=%%a
-	for /f "tokens=2*" %%a in ('reg query "!jdkVersionReg!" /v JavaHome') do @set jdkPath=%%b
+@if not errorlevel 1 (
+	for /f "tokens=*" %%a in ('reg query "HKEY_LOCAL_MACHINE\SOFTWARE\JavaSoft\Java Development Kit"') do @(
+		set jdkVersionReg=%%a
+		for /f "tokens=2*" %%a in ('reg query "!jdkVersionReg!" /v JavaHome 2^>nul') do @(
+			if exist "%%b\bin\jar.exe" set jdkPath=%%b
+		)
+	)
 )
 
 @if "%jdkPath%"=="" (
 	reg query "HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\JavaSoft\Java Development Kit"
-	if "%errorlevel%"=="0" (
-		for /f "tokens=*" %%a in ('reg query "HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\JavaSoft\Java Development Kit"') do @set jdkVersionReg=%%a
-		for /f "tokens=2*" %%a in ('reg query "!jdkVersionReg!" /v JavaHome') do @set jdkPath=%%b
+	if not errorlevel 1 (
+		for /f "tokens=*" %%a in ('reg query "HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\JavaSoft\Java Development Kit"') do @(
+			set jdkVersionReg=%%a
+			for /f "tokens=2*" %%a in ('reg query "!jdkVersionReg!" /v JavaHome 2^>nul') do @(
+				if exist "%%b\bin\jar.exe" set jdkPath=%%b
+			)
+		)
 	)
 )
 
@@ -65,7 +82,7 @@ reg query "HKEY_LOCAL_MACHINE\SOFTWARE\JavaSoft\Java Development Kit"
 @if exist "%jdkPath%\bin\jar.exe" set path=%jdkPath%\bin;%path%
 
 where jar
-@if "%errorlevel%"=="1" (
+@if errorlevel 1 (
 	echo.
 	echo   未安装JDK，请自行下载安装（http://download.oracle.com/otn-pub/java/jdk/8u112-b15/jdk-8u112-windows-i586.exe）
 	echo.
@@ -215,7 +232,7 @@ jar -cvf services.jar classes.dex
 @echo.
 
 @adb shell pm list packages|find "me.piebridge.prevent"
-@if "%errorlevel%"=="1" (
+@if errorlevel 1 (
 	echo   安装黑域。。。
 	echo.
 	adb install Brevent.apk
