@@ -137,6 +137,7 @@ if "!UseAdb!"=="1" (
 
 	for /f "tokens=1 delims=." %%t in ('adb shell getprop ro.build.version.release') do set androidVersion=%%t
 ) else (
+	echo.
 	echo 请输入文件所属的安卓版本（4/5/6/7）：
 	set /p androidVersion=
 )
