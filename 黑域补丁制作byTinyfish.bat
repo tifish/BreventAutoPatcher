@@ -2,7 +2,7 @@
 setlocal EnableDelayedExpansion
 color 3f
 
-title 黑域补丁自动制作 2.9 by Tinyfish
+title 黑域补丁自动制作 3.0 by Tinyfish
 echo =================================================
 echo   此脚本一键制作黑域内核补丁，功能包括：
 echo   * 自动上传下载手机中的内核文件。
