@@ -12,7 +12,7 @@ MESSAGE_ZH_TW = {
     '%s not exists%s': '無法找到檔案 %s%s',
     '%s patched %s%s': '成功為 %s 打了 %s 處補丁%s',
     '%s patched %s, should patch %s%s': '為 %s 打了 %s 處補丁，應該打 %s 處%s',
-    'copying %s%s': '正在拷貝 %s%s',
+    'copying %s%s': '正在拷貝%s%s',
 }
 
 MESSAGE_ZH = {
@@ -26,12 +26,12 @@ def _(message):
     lang, encoding = locale.getdefaultlocale()
     if not lang or not lang.startswith("zh"):
         return message
-    if lang.startswith("zh_TW") or lang.startswith("zh_HK"):
+    if lang.startswith("zh_TW"):
         translate = MESSAGE_ZH_TW.get(message, message)
     else:
         translate = MESSAGE_ZH.get(message, message)
-    if hasattr(translate, 'decode') and encoding != 'UTF-8':
-        return translate.decode('UTF-8').encode(encoding)
+    if hasattr(translate, 'decode'):
+        return translate.decode('utf8').encode(encoding)
     else:
         return translate
 
@@ -52,7 +52,7 @@ class Patch(object):
         path = self.build_path(self.get_path())
         if not os.path.exists(path):
             sys.stderr.write(_("%s not exists%s") % (path, os.linesep))
-            raise SystemExit
+            raise SystemExit(1)
 
         output = open(path + ".patched", "w")
         for line in open(path, "r"):
@@ -71,7 +71,7 @@ class Patch(object):
         else:
             sys.stderr.write(_("%s patched %s, should patch %s%s") % (
                 path_name, patched, self.get_patch_count(), os.linesep))
-            raise SystemExit()
+            raise SystemExit(2)
         return patched
 
     def get_path(self):
@@ -151,9 +151,6 @@ class ActivityManagerService(Patch):
 
     def init_pr_methods(self):
         path = self.build_path("com/android/server/am/ActivityManagerService.smali", self.dir_apk)
-        if not os.path.exists(path):
-            sys.stderr.write(_("%s not exists%s") % (path, os.linesep))
-            raise SystemExit
         methods = {}
         method_name = method_signature = method_body = ''
         for line in open(path, "r"):
@@ -220,6 +217,9 @@ class ActivityManagerService(Patch):
 
 
 class ActivityStack(Patch):
+
+    patched = 0
+
     def get_path(self):
         return "com/android/server/am/ActivityStack.smali"
 
@@ -232,6 +232,7 @@ class ActivityStack(Patch):
                          " Lcom/android/server/am/PreventRunningUtils;"
                          "->onResumeActivity(Landroid/os/IBinder;)V" % (argument, argument))
             output.write(os.linesep)
+            self.patched += 1
             return True
         elif "Landroid/app/IApplicationThread;->scheduleDestroyActivity(Landroid/os/IBinder;" in line:
             output.write(line)
@@ -241,6 +242,7 @@ class ActivityStack(Patch):
                          " Lcom/android/server/am/PreventRunningUtils;"
                          "->onDestroyActivity(Landroid/os/IBinder;)V" % (argument, argument))
             output.write(os.linesep)
+            self.patched += 1
             return True
         elif "Landroid/app/IApplicationThread;->schedulePauseActivity(Landroid/os/IBinder;ZZ" in line:
             output.write(line)
@@ -255,13 +257,20 @@ class ActivityStack(Patch):
                          " Lcom/android/server/am/PreventRunningUtils;"
                          "->onUserLeavingActivity(Landroid/os/IBinder;ZZ)V" % ', '.join(arguments[1:4]))
             output.write(os.linesep)
+            self.patched += 1
             return True
 
     def get_patch_count(self):
-        return 3
+        if self.patched > 3:
+            return self.patched
+        else:
+            return 3
 
 
 class ActivityStackSupervisor(Patch):
+
+    patched = 0
+
     def get_path(self):
         return "com/android/server/am/ActivityStackSupervisor.smali"
 
@@ -275,10 +284,14 @@ class ActivityStackSupervisor(Patch):
                          " Lcom/android/server/am/PreventRunningUtils;"
                          "->onLaunchActivity(Landroid/os/IBinder;)V" % (argument, argument))
             output.write(os.linesep)
+            self.patched += 1
             return True
 
     def get_patch_count(self):
-        return 1
+        if self.patched > 1:
+            return self.patched
+        else:
+            return 1
 
 
 def main():
