@@ -3,6 +3,7 @@ setlocal EnableDelayedExpansion
 color 3f
 
 cd /d "%~dp0"
+set path=%~dp0Binary;!path!
 
 title 黑域补丁自动制作 3.4 by Tinyfish
 echo =================================================
@@ -106,7 +107,7 @@ if "!UseAdb!"=="1" (
 		if not exist framework md framework
 		pushd .
 		cd framework
-		..\adb pull /system/framework
+		adb pull /system/framework
 		popd
 	)
 )
