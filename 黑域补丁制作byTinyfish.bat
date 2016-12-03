@@ -24,7 +24,7 @@ if /i "%~1"=="NoAdb" (
 	echo.
 	echo   * 拷贝services.jar到当前目录。
 	echo.
-	echo   * 如果存在services.odex，拷贝/system/framework/内容到odex目录。
+	echo   * 如果存在services.odex，拷贝/system/framework/所有内容到./framework目录。
 	echo.
 	pause
 )
@@ -85,7 +85,7 @@ if exist classes.dex del /q classes.dex
 
 if "!UseAdb!"=="1" (
 	if exist services.jar del /q services.jar
-	if exist odex rd /s/q odex
+	if exist framework rd /s/q framework
 )
 
 if "!UseAdb!"=="1" (
@@ -98,15 +98,15 @@ if "!UseAdb!"=="1" (
 
 	for /f "tokens=*" %%a in ('adb shell ls -lR /system/framework^|find "services.odex"') do set odexFile=%%a
 	if not "!odexFile!"=="" (
-		if not exist odex md odex
+		if not exist framework md framework
 		pushd .
-		cd odex
+		cd framework
 		..\adb pull /system/framework
 		popd
 	)
 )
 
-if exist odex (
+if exist framework (
 	for /f "tokens=*" %%a in ('dir /b /s services.odex') do set servicesOdexPath=%%a
 	for %%a in ("!servicesOdexPath!") do set servicesOdexDir=%%~dpa
 	set servicesOdexDir=!servicesOdexDir:~0,-1!
@@ -124,10 +124,13 @@ if exist odex (
 )
 
 if not exist bak md bak
-if exist services.jar copy /y services.jar bak\services.jar
+if exist "!servicesOdexPath!" (
+	if exist framework\services.jar copy /y framework\services.jar .\
+)
+if exist services.jar copy /y services.jar bak\
 
-if not "!servicesOdexPath!"=="" (
-	if exist odex\services.odex copy /y "!servicesOdexPath!" bak\services.odex
+if exist "!servicesOdexPath!" (
+	copy /y "!servicesOdexPath!" bak\
 	
 	echo.
 	echo =================================================
@@ -155,7 +158,7 @@ if not "!servicesOdexPath!"=="" (
 	) else (
 		echo.
 		echo =================================================
-		echo   无法下载services.jar/odex，请检查手机是否正常连接。
+		echo   无法下载services.jar/.odex，请检查手机是否正常连接。
 		echo.
 		pause
 		exit /b
@@ -200,7 +203,7 @@ if exist services rd /s/q services
 if exist classes.dex del /q classes.dex
 
 if "!UseAdb!"=="1" (
-	if exist odex rd /s/q odex
+	if exist framework rd /s/q framework
 )
 
 if "!UseAdb!"=="1" (
