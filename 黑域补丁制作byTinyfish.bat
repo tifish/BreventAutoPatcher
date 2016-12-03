@@ -2,13 +2,14 @@
 setlocal EnableDelayedExpansion
 color 3f
 
-title 黑域补丁自动制作 3.1 by Tinyfish
+title 黑域补丁自动制作 3.2 by Tinyfish
 echo =================================================
 echo   此脚本一键制作黑域内核补丁，功能包括：
 echo   * 自动上传下载手机中的内核文件。
-echo   * 检测并提示需要安装的基础库。
+echo   * 不需要额外安装Python和JDK库。
+echo   * 自动安装adb驱动。
 echo   * 检测adb root权限。
-echo   * 区分处理jar和odex的情况。
+echo   * 智能区分处理jar和odex的情况。
 echo   * 支持Android 4.x~7.x。
 echo   * 安装黑域app。
 echo   * 清理临时文件。
@@ -34,76 +35,6 @@ echo   检查环境。。。
 echo.
 
 :CHECK_ENV
-
-reg query "HKEY_LOCAL_MACHINE\SOFTWARE\Python\PythonCore"
-if not errorlevel 1 (
-	for /f "tokens=*" %%a in ('reg query "HKEY_LOCAL_MACHINE\SOFTWARE\Python\PythonCore"') do (
-		set pythonVersionReg=%%a
-		for /f "tokens=2*" %%a in ('reg query "!pythonVersionReg!\InstallPath" /ve 2^>nul') do (
-			if exist "%%bpython.exe" set pythonPath=%%b
-		)
-	)
-)
-
-if "!pythonPath!"=="" (
-	reg query "HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Python\PythonCore"
-	if not errorlevel 1 (
-		for /f "tokens=*" %%a in ('reg query "HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Python\PythonCore"') do (
-			set pythonVersionReg=%%a
-			for /f "tokens=2*" %%a in ('reg query "!pythonVersionReg!\InstallPath" /ve 2^>nul') do (
-				if exist "%%bpython.exe" set pythonPath=%%b
-			)
-		)
-	)
-)
-
-echo.
-echo   Python路径: !pythonPath!
-if exist "!pythonPath!python.exe" set path=!pythonPath!;!path!
-
-where python
-if errorlevel 1 (
-	echo.
-	echo   未安装Python，请自行下载安装（https://www.python.org/ftp/python/2.7.12/python-2.7.12.msi）
-	echo.
-	pause
-	exit /b
-)
-
-reg query "HKEY_LOCAL_MACHINE\SOFTWARE\JavaSoft\Java Development Kit"
-if not errorlevel 1 (
-	for /f "tokens=*" %%a in ('reg query "HKEY_LOCAL_MACHINE\SOFTWARE\JavaSoft\Java Development Kit"') do (
-		set jdkVersionReg=%%a
-		for /f "tokens=2*" %%a in ('reg query "!jdkVersionReg!" /v JavaHome 2^>nul') do (
-			if exist "%%b\bin\jar.exe" set jdkPath=%%b
-		)
-	)
-)
-
-if "!jdkPath!"=="" (
-	reg query "HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\JavaSoft\Java Development Kit"
-	if not errorlevel 1 (
-		for /f "tokens=*" %%a in ('reg query "HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\JavaSoft\Java Development Kit"') do (
-			set jdkVersionReg=%%a
-			for /f "tokens=2*" %%a in ('reg query "!jdkVersionReg!" /v JavaHome 2^>nul') do (
-				if exist "%%b\bin\jar.exe" set jdkPath=%%b
-			)
-		)
-	)
-)
-
-echo.
-echo   JDK路径：!jdkPath!
-if exist "!jdkPath!\bin\jar.exe" set path=!jdkPath!\bin;!path!
-
-where jar
-if errorlevel 1 (
-	echo.
-	echo   未安装JDK，请自行下载安装（http://download.oracle.com/otn-pub/java/jdk/8u112-b15/jdk-8u112-windows-i586.exe）
-	echo.
-	pause
-	exit /b
-)
 
 if "!UseAdb!"=="1" (
 	for /f "tokens=*" %%t in ('adb get-state') do set adbState=%%t
@@ -203,14 +134,14 @@ if not "!servicesOdexPath!"=="" (
 	echo   正在把services.odex转成smali。。。
 	echo.
 	if "!androidVersion!"=="5" (
-		java -Xms1g -jar oat2dex.jar boot "!bootOatPath!"
+		oat2dex.exe boot "!bootOatPath!"
 		if errorlevel 1 echo 转换boot.oat出错。& pause & exit /b
-		java -Xms1g -jar oat2dex.jar "!servicesOdexPath!" !bootOatDir!\dex
+		oat2dex.exe "!servicesOdexPath!" !bootOatDir!\dex
 		if errorlevel 1 echo 转换services.odex出错。& pause & exit /b
-		java -Xms1g -jar baksmali-2.2b4.jar d "!servicesOdexDir!\services.dex" -o services		
+		baksmali-2.2b4.exe d "!servicesOdexDir!\services.dex" -o services		
 		if errorlevel 1 echo 转换services.dex出错。& pause & exit /b
 	) else (
-		java -Xms1g -jar baksmali-2.2b4.jar x -d "!bootOatDir!" "!servicesOdexPath!" -o services
+		baksmali-2.2b4.exe x -d "!bootOatDir!" "!servicesOdexPath!" -o services
 		if errorlevel 1 echo 转换odex出错。& pause & exit /b
 	)
 ) else (
@@ -219,7 +150,7 @@ if not "!servicesOdexPath!"=="" (
 	echo   正在把services.jar转成smali。。。
 	echo.
 	if exist services.jar (
-		java -Xms1g -jar baksmali-2.2b4.jar d services.jar -o services
+		baksmali-2.2b4.exe d services.jar -o services
 		if errorlevel 1 echo 转换services.jar出错。& pause & exit /b
 	) else (
 		echo.
@@ -235,13 +166,13 @@ echo.
 echo =================================================
 echo   正在把apk转成smali。。。
 echo.
-if not exist apk java -Xms1g -jar baksmali-2.2b4.jar d Brevent.apk -o apk
+if not exist apk baksmali-2.2b4.exe d Brevent.apk -o apk
 
 echo.
 echo =================================================
 echo   正在打补丁。。。
 echo.
-python patch.py -a apk -s services
+patch.exe -a apk -s services
 if errorlevel 1 (
 	echo.
 	echo   打补丁出错，这会导致手机无法启动！骚年，不能再继续了，要出事的。
@@ -255,9 +186,9 @@ echo.
 echo =================================================
 echo   正在输出打过补丁的services.jar。。。
 echo.
-java -Xms1g -jar smali-2.2b4.jar a -o classes.dex services
+smali-2.2b4.exe a -o classes.dex services
 if errorlevel 1 echo 输出classes.dex出错。& pause & exit /b
-jar -cvf services.jar classes.dex
+"%~dp0zip.exe" services.jar classes.dex
 if errorlevel 1 echo 打包classes.dex出错。& pause & exit /b
 
 echo.
