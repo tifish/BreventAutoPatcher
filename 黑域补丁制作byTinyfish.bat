@@ -25,9 +25,9 @@ if /i "%~1"=="NoAdb" (
 	echo =================================================
 	echo   手工补丁制作模式，请：
 	echo.
-	echo   * 拷贝services.jar到当前目录。
+	echo   * 拷贝services.jar到./framework/下，请自行创建framework目录。
 	echo.
-	echo   * 如果存在services.odex，拷贝/system/framework/所有内容到./framework目录。
+	echo   * 如果存在services.odex，拷贝/system/framework/所有内容到./framework/目录。
 	echo.
 	pause
 )
@@ -86,11 +86,12 @@ echo =================================================
 echo   清理文件。。。
 echo.
 
+if exist apk rd /s/q apk
 if exist services rd /s/q services
 if exist classes.dex del /q classes.dex
+if exist services.jar del /q services.jar
 
 if "!UseAdb!"=="1" (
-	if exist services.jar del /q services.jar
 	if exist framework rd /s/q framework
 )
 
@@ -100,20 +101,33 @@ if "!UseAdb!"=="1" (
 	echo   获取services.jar。。。
 	echo.
 
-	adb pull /system/framework/services.jar
-
+	if not exist framework md framework
+	pushd .
+	cd framework
+	
 	for /f "tokens=*" %%a in ('adb shell ls -lR /system/framework^|find "services.odex"') do set odexFile=%%a
-	if not "!odexFile!"=="" (
-		if not exist framework md framework
-		pushd .
-		cd framework
+	if "!odexFile!"=="" (
+		adb pull /system/framework/services.jar
+	) else (
 		adb pull /system/framework
-		popd
 	)
+
+	popd
 )
 
-if exist framework (
-	for /f "tokens=*" %%a in ('dir /b /s services.odex') do set servicesOdexPath=%%a
+if not exist framework\services.jar (
+	echo.
+	echo   找不到services.jar，无法继续。
+	echo.
+	echo   请按任意键退出。。。
+	pause >nul
+	exit /b
+)
+
+pushd .
+cd framework
+for /f "tokens=*" %%a in ('dir /b /s services.odex') do set servicesOdexPath=%%a
+if exist "!servicesOdexPath!" (
 	for %%a in ("!servicesOdexPath!") do set servicesOdexDir=%%~dpa
 	set servicesOdexDir=!servicesOdexDir:~0,-1!
 	
@@ -122,22 +136,18 @@ if exist framework (
 		echo.
 		echo   存在services.odex，但找不到boot.oat，无法继续。
 		echo.
-		pause
+		echo   请按任意键退出。。。
+		pause >nul
 		exit /b
 	)
 	for %%a in ("!bootOatPath!") do set bootOatDir=%%~dpa
 	set bootOatDir=!bootOatDir:~0,-1!
 )
+popd
 
-if not exist bak md bak
-if exist "!servicesOdexPath!" (
-	if exist framework\services.jar copy /y framework\services.jar .\
-)
-if exist services.jar copy /y services.jar bak\
+copy /y framework\services.jar .\
 
 if exist "!servicesOdexPath!" (
-	copy /y "!servicesOdexPath!" bak\
-	
 	echo.
 	echo =================================================
 	echo   正在把services.odex转成smali。。。
@@ -158,17 +168,8 @@ if exist "!servicesOdexPath!" (
 	echo =================================================
 	echo   正在把services.jar转成smali。。。
 	echo.
-	if exist services.jar (
-		baksmali-2.2b4.exe d services.jar -o services
-		if errorlevel 1 echo 转换services.jar出错。& pause & exit /b
-	) else (
-		echo.
-		echo =================================================
-		echo   无法下载services.jar/.odex，请检查手机是否正常连接。
-		echo.
-		pause
-		exit /b
-	)
+	baksmali-2.2b4.exe d framework\services.jar -o services
+	if errorlevel 1 echo 转换services.jar出错。& pause & exit /b
 )
 
 echo.
@@ -205,6 +206,7 @@ echo =================================================
 echo   清理临时文件。。。
 echo.
 
+if exist apk rd /s/q apk
 if exist services rd /s/q services
 if exist classes.dex del /q classes.dex
 
