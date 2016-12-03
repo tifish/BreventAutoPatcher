@@ -44,8 +44,13 @@ if "!UseAdb!"=="1" (
 	echo   Adb状态: !adbState!
 	if not "!adbState!"=="device" (
 		echo.
+		echo   尝试安装adb驱动。。。
+		call InstallUsbDriver.cmd
+
+		echo.
 		echo   尝试添加adb vendor id。。。
 		call AddAndroidVendorID.cmd
+
 		adb kill-server
 		ping -n 2 127.0.0.1 >nul
 		
@@ -56,11 +61,9 @@ if "!UseAdb!"=="1" (
 			echo.
 			echo   无法连接adb，请确保：
 			echo.
-			echo   * 电脑已安装adb驱动（http://download.clockworkmod.com/test/UniversalAdbDriverSetup.msi）。
+			echo   * 把手机接上USB。
 			echo.
 			echo   * 手机允许ADB调试和root（http://www.shuame.com/faq/usb-connect/9-usb.html）。
-			echo.
-			echo   * 把手机接上USB。
 			echo.
 			pause
 			goto :CHECK_ENV
