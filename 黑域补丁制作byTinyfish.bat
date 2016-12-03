@@ -2,6 +2,8 @@
 setlocal EnableDelayedExpansion
 color 3f
 
+cd /d "%~dp0"
+
 title 黑域补丁自动制作 3.2 by Tinyfish
 echo =================================================
 echo   此脚本一键制作黑域内核补丁，功能包括：
@@ -43,7 +45,7 @@ if "!UseAdb!"=="1" (
 	if not "!adbState!"=="device" (
 		echo.
 		echo   尝试添加adb vendor id。。。
-		call "%~dp0AddAndroidVendorID.cmd"
+		call AddAndroidVendorID.cmd
 		adb kill-server
 		ping -n 2 127.0.0.1 >nul
 		
@@ -191,7 +193,7 @@ echo   正在输出打过补丁的services.jar。。。
 echo.
 smali-2.2b4.exe a -o classes.dex services
 if errorlevel 1 echo 输出classes.dex出错。& pause & exit /b
-"%~dp0zip.exe" services.jar classes.dex
+zip.exe services.jar classes.dex
 if errorlevel 1 echo 打包classes.dex出错。& pause & exit /b
 
 echo.
