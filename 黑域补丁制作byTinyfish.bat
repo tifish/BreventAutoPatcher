@@ -108,8 +108,10 @@ if "!UseAdb!"=="1" (
 	for /f "tokens=*" %%a in ('adb shell ls -lR /system/framework^|find "services.odex"') do set odexFile=%%a
 	if "!odexFile!"=="" (
 		adb pull /system/framework/services.jar
+		if errorlevel 1 echo 下载services.jar失败。 & pause & exit /b
 	) else (
 		adb pull /system/framework
+		if errorlevel 1 echo 下载framework/失败。 & pause & exit /b
 	)
 
 	popd
@@ -232,13 +234,9 @@ if "!UseAdb!"=="1" (
 	echo 上传生成的services.jar到/system/framework中。
 	echo.
 
-	adb push services.jar /sdcard/
-
 	:CHECK_ROOT
 	adb shell su -c "chmod 666 /data/data/com.android.providers.contacts/databases/contacts2.db"
-	for /f "tokens=1" %%a in ('adb shell su -c "ls -l /data/data/com.android.providers.contacts/databases/contacts2.db"') do set mod=%%a
-	adb shell su -c "chmod 660 /data/data/com.android.providers.contacts/databases/contacts2.db"
-	if not "!mod!"=="-rw-rw-rw-" (
+	if errorlevel 1 (
 		echo.
 		echo   adb没有root权限，请确保：
 		echo.
@@ -250,12 +248,30 @@ if "!UseAdb!"=="1" (
 		echo.
 		pause
 		goto :CHECK_ROOT
+	) else (
+		adb shell su -c "chmod 660 /data/data/com.android.providers.contacts/databases/contacts2.db"
 	)
 
-	adb shell su -c "mount -o rw,remount /system"
-	adb shell su -c "cp -f /sdcard/services.jar /system/framework/"
-	adb shell su -c "chmod 644 /system/framework/services.jar"
+	adb push services.jar /sdcard/
+	if errorlevel 1 echo 上传services.jar到/sdcard/失败。& goto :UploadError
 
+	adb shell su -c "mount -o rw,remount /system"
+	if errorlevel 1 echo 加载system分区失败。& goto :UploadError
+	adb shell su -c "cp -f /sdcard/services.jar /system/framework/"
+	if errorlevel 1 echo 拷贝services.jar失败。& goto :UploadError
+	adb shell su -c "chmod 644 /system/framework/services.jar"
+	if errorlevel 1 echo 修改权限失败。& goto :UploadError
+
+	goto :UploadErrorEnd
+:UploadError
+	echo.
+	echo   因为rom的限制，无法自动上传services.jar。请手动拷贝services.jar到/system/framework/。
+	echo.
+	echo   按任意键退出。。。
+	pause>nul
+	exit /b
+:UploadErrorEnd
+	
 	echo.
 	echo =================================================
 	echo   完成！记得重启手机。
