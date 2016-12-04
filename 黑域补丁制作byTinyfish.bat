@@ -127,7 +127,7 @@ if not exist framework\services.jar (
 )
 
 cd framework
-for /f "tokens=*" %%a in ('dir /b /s services.odex') do set servicesOdexPath=%%a
+for /f "tokens=*" %%a in ('dir /b /s services.odex 2^>nul') do set servicesOdexPath=%%a
 if exist "!servicesOdexPath!" (
 	for %%a in ("!servicesOdexPath!") do set servicesOdexDir=%%~dpa
 	set servicesOdexDir=!servicesOdexDir:~0,-1!
