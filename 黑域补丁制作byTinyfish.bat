@@ -273,7 +273,7 @@ if "!UseAdb!"=="1" (
 	if errorlevel 1 echo 上传BreventPatch.zip到/sdcard/失败。& call :UploadError
 
 	:CHECK_ROOT
-	adb shell su -c "chmod 666 /data/data/com.android.providers.contacts/databases/contacts2.db"
+	adb shell su -c 'chmod 666 /data/data/com.android.providers.contacts/databases/contacts2.db'
 	if errorlevel 1 (
 		echo.
 		echo   adb没有root权限，请确保：
@@ -287,14 +287,14 @@ if "!UseAdb!"=="1" (
 		pause
 		goto :CHECK_ROOT
 	) else (
-		adb shell su -c "chmod 660 /data/data/com.android.providers.contacts/databases/contacts2.db"
+		adb shell su -c 'chmod 660 /data/data/com.android.providers.contacts/databases/contacts2.db'
 	)
 
-	adb shell su -c "mount -o rw,remount /system"
+	adb shell su -c 'mount -o rw,remount /system'
 	if errorlevel 1 echo 加载system分区失败。& call :UploadError
-	adb shell su -c "cp -f /sdcard/services.jar /system/framework/"
+	adb shell su -c 'cp -f /sdcard/services.jar /system/framework/'
 	if errorlevel 1 echo 拷贝services.jar失败。& call :UploadError
-	adb shell su -c "chmod 644 /system/framework/services.jar"
+	adb shell su -c 'chmod 644 /system/framework/services.jar'
 	if errorlevel 1 echo 修改权限失败。& call :UploadError
 
 	echo.
