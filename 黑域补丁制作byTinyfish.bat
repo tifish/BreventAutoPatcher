@@ -5,7 +5,7 @@ color 3f
 cd /d "%~dp0"
 set path=%~dp0Binary;!path!
 
-title 黑域补丁自动制作 3.5 by Tinyfish
+title 黑域补丁自动制作 3.6 by Tinyfish
 echo =================================================
 echo   此脚本一键制作黑域内核补丁，功能包括：
 echo   * 自动上传下载手机中的内核文件。
