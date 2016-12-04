@@ -178,7 +178,7 @@ echo.
 echo =================================================
 echo   正在把apk转成smali。。。
 echo.
-if not exist apk baksmali-2.2b4.exe d Brevent.apk -o apk
+baksmali-2.2b4.exe d Package\Brevent.apk -o apk
 
 echo.
 echo =================================================
@@ -226,7 +226,7 @@ if "!UseAdb!"=="1" (
 	if errorlevel 1 (
 		echo   安装黑域。。。
 		echo.
-		adb install Brevent.apk
+		adb install Package\Brevent.apk
 	)
 
 	echo.
