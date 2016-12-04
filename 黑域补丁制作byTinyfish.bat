@@ -103,11 +103,10 @@ if "!UseAdb!"=="1" (
 	echo.
 
 	if not exist framework md framework
-	pushd .
 	cd framework
 	
-	for /f "tokens=*" %%a in ('adb shell ls -lR /system/framework^|find "services.odex"') do set odexFile=%%a
-	if "!odexFile!"=="" (
+	adb shell ls -lR /system/framework|find "services.odex"
+	if errorlevel 1 (
 		adb pull /system/framework/services.jar
 		if errorlevel 1 echo œ¬‘ÿservices.jar ß∞‹°£ & pause & exit /b
 	) else (
@@ -115,7 +114,7 @@ if "!UseAdb!"=="1" (
 		if errorlevel 1 echo œ¬‘ÿframework/ ß∞‹°£ & pause & exit /b
 	)
 
-	popd
+	cd "%~dp0"
 )
 
 if not exist framework\services.jar (
@@ -127,7 +126,6 @@ if not exist framework\services.jar (
 	exit /b
 )
 
-pushd .
 cd framework
 for /f "tokens=*" %%a in ('dir /b /s services.odex') do set servicesOdexPath=%%a
 if exist "!servicesOdexPath!" (
@@ -146,7 +144,7 @@ if exist "!servicesOdexPath!" (
 	for %%a in ("!bootOatPath!") do set bootOatDir=%%~dpa
 	set bootOatDir=!bootOatDir:~0,-1!
 )
-popd
+cd "%~dp0"
 
 copy /y framework\services.jar .\
 
