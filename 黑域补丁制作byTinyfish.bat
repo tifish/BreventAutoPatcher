@@ -5,7 +5,7 @@ color 3f
 cd /d "%~dp0"
 set path=%~dp0Binary;!path!
 
-title 黑域补丁自动制作 3.7 by Tinyfish
+title 黑域补丁自动制作 3.8 by Tinyfish
 echo =================================================
 echo   此脚本一键制作黑域内核补丁，功能包括：
 echo   * 自动上传下载手机中的内核文件。
@@ -102,19 +102,17 @@ if "!UseAdb!"=="1" (
 	echo   获取services.jar。。。
 	echo.
 
-	if not exist framework md framework
-	cd framework
-	
 	adb shell ls -lR /system/framework|find "services.odex"
 	if errorlevel 1 (
+		if not exist framework md framework
+		cd framework
 		adb pull /system/framework/services.jar
 		if errorlevel 1 echo 下载services.jar失败。 & pause & exit /b
+		cd "%~dp0"
 	) else (
 		adb pull /system/framework
 		if errorlevel 1 echo 下载framework/失败。 & pause & exit /b
 	)
-
-	cd "%~dp0"
 )
 
 if not exist framework\services.jar (
