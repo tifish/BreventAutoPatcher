@@ -26,9 +26,9 @@ if /i "%~1"=="NoAdb" (
 	echo =================================================
 	echo   手工补丁制作模式，请：
 	echo.
-	echo   * 拷贝services.jar到./framework/下，请自行创建framework目录。
+	echo   * 拷贝services.jar到framework\下，请自行创建framework目录。
 	echo.
-	echo   * 如果存在services.odex，拷贝/system/framework/所有内容到./framework/目录。
+	echo   * 如果存在services.odex，拷贝/system/framework/所有内容到framework\目录。
 	echo.
 	pause
 )
@@ -107,11 +107,11 @@ if "!UseAdb!"=="1" (
 		if not exist framework md framework
 		cd framework
 		adb pull /system/framework/services.jar
-		if errorlevel 1 echo 下载services.jar失败。 & pause & exit /b
+		if errorlevel 1 echo   下载services.jar失败。 & pause & exit /b
 		cd "%~dp0"
 	) else (
 		adb pull /system/framework
-		if errorlevel 1 echo 下载framework/失败。 & pause & exit /b
+		if errorlevel 1 echo   下载framework/失败。 & pause & exit /b
 	)
 )
 
@@ -124,40 +124,79 @@ if not exist framework\services.jar (
 	exit /b
 )
 
+echo.
+echo =================================================
+echo   检测services.odex。。。
+echo.
+
 cd framework
 for /f "tokens=*" %%a in ('dir /b /s services.odex 2^>nul') do set servicesOdexPath=%%a
-if exist "!servicesOdexPath!" (
-	for %%a in ("!servicesOdexPath!") do set servicesOdexDir=%%~dpa
-	set servicesOdexDir=!servicesOdexDir:~0,-1!
-	
-	for /f "tokens=*" %%a in ('dir /b /s boot.oat') do set bootOatPath=%%a
-	if not exist "!bootOatPath!" (
-		echo.
-		echo   存在services.odex，但找不到boot.oat，无法继续。
-		echo.
-		echo   请按任意键退出。。。
-		pause >nul
-		exit /b
-	)
-	for %%a in ("!bootOatPath!") do set bootOatDir=%%~dpa
-	set bootOatDir=!bootOatDir:~0,-1!
-)
 cd "%~dp0"
+if not exist "!servicesOdexPath!" echo   不存在services.odex & goto :SKIP_SERVICES_ODEX
+for %%a in ("!servicesOdexPath!") do set servicesOdexDir=%%~dpa
+set servicesOdexDir=!servicesOdexDir:~0,-1!
+
+cd framework
+for /f "tokens=*" %%a in ('dir /b /s boot.oat') do set bootOatPath=%%a
+cd "%~dp0"
+if not exist "!bootOatPath!" (
+	echo.
+	echo   存在services.odex，但找不到boot.oat，无法继续。
+	echo.
+	echo   请按任意键退出。。。
+	pause >nul
+	exit /b
+)
+for %%a in ("!bootOatPath!") do set bootOatDir=%%~dpa
+set bootOatDir=!bootOatDir:~0,-1!
+
+:TRY_MOVE_FRAMEWORK
+md \BreventAutoPatchTemp
+move framework \BreventAutoPatchTemp\
+if errorlevel 1 echo   检测到framework目录被锁定，请不要打开framework目录或其中的文件。& pause & goto :TRY_MOVE_FRAMEWORK
+
+cd /BreventAutoPatchTemp/framework
+for /f "tokens=*" %%a in ('dir /b /s services.odex 2^>nul') do set servicesOdexFrameworkPath=%%a
+cd "%~dp0"
+
+move \BreventAutoPatchTemp\framework .\
+rd \BreventAutoPatchTemp
+
+set servicesOdexFrameworkPath=!servicesOdexFrameworkPath:~24!
+set servicesOdexFrameworkDir=!servicesOdexFrameworkPath:~0,-14!
+
+set servicesOdexMobilePath=/system/!servicesOdexFrameworkPath!
+set servicesOdexMobilePath=!servicesOdexMobilePath:\=/!
+
+echo.
+echo   services.odex电脑路径：!servicesOdexFrameworkPath!
+echo   services.odex手机路径：!servicesOdexMobilePath!
+echo.
+
+:SKIP_SERVICES_ODEX
 
 copy /y framework\services.jar .\
 
 echo.
 echo =================================================
-echo   生成刷机恢复包Restore.zip。。。
+echo   生成刷机恢复包BreventRestore.zip。。。
 echo.
+
 copy /y Package\Update.zip BreventRestoreRaw.zip
 if exist system rd /s/q system
 md system\framework
+
 copy /y framework\services.jar system\framework\
+if exist "!servicesOdexPath!" (
+	md system\!servicesOdexFrameworkDir! 2>nul
+	copy /y "!servicesOdexPath!" system\!servicesOdexFrameworkDir!\
+)
+
 zip -r BreventRestoreRaw.zip system\
-if errorlevel 1 echo 无法生成刷机恢复包。& pause & exit /b
+if errorlevel 1 echo   无法生成刷机恢复包。& pause & exit /b
 signapk Binary\testkey.x509.pem Binary\testkey.pk8 BreventRestoreRaw.zip BreventRestore.zip
-if errorlevel 1 echo 无法签名刷机补丁包。& pause & exit /b
+if errorlevel 1 echo   无法签名刷机补丁包。& pause & exit /b
+
 del /q BreventRestoreRaw.zip
 rd /s/q system
 
@@ -168,14 +207,14 @@ if exist "!servicesOdexPath!" (
 	echo.
 	if "!androidVersion!"=="5" (
 		oat2dex boot "!bootOatPath!"
-		if errorlevel 1 echo 转换boot.oat出错。& pause & exit /b
+		if errorlevel 1 echo   转换boot.oat出错。& pause & exit /b
 		oat2dex "!servicesOdexPath!" !bootOatDir!\dex
-		if errorlevel 1 echo 转换services.odex出错。& pause & exit /b
+		if errorlevel 1 echo   转换services.odex出错。& pause & exit /b
 		baksmali-2.2b4 d "!servicesOdexDir!\services.dex" -o services		
-		if errorlevel 1 echo 转换services.dex出错。& pause & exit /b
+		if errorlevel 1 echo   转换services.dex出错。& pause & exit /b
 	) else (
 		baksmali-2.2b4 x -d "!bootOatDir!" "!servicesOdexPath!" -o services
-		if errorlevel 1 echo 转换odex出错。& pause & exit /b
+		if errorlevel 1 echo   转换odex出错。& pause & exit /b
 	)
 ) else (
 	echo.
@@ -183,7 +222,7 @@ if exist "!servicesOdexPath!" (
 	echo   正在把services.jar转成smali。。。
 	echo.
 	baksmali-2.2b4 d framework\services.jar -o services
-	if errorlevel 1 echo 转换services.jar出错。& pause & exit /b
+	if errorlevel 1 echo   转换services.jar出错。& pause & exit /b
 )
 
 echo.
@@ -211,37 +250,27 @@ echo =================================================
 echo   正在输出打过补丁的services.jar。。。
 echo.
 smali-2.2b4 a -o classes.dex services
-if errorlevel 1 echo 输出classes.dex出错。& pause & exit /b
+if errorlevel 1 echo   输出classes.dex出错。& pause & exit /b
 zip services.jar classes.dex
-if errorlevel 1 echo 打包classes.dex出错。& pause & exit /b
+if errorlevel 1 echo   打包classes.dex出错。& pause & exit /b
 
 echo.
 echo =================================================
 echo   生成刷机补丁包BreventPatch.zip。。。
 echo.
+
 copy /y Package\Update.zip BreventPatchRaw.zip
 if exist system rd /s/q system
 md system\framework
 copy /y services.jar system\framework\
+
 zip -r BreventPatchRaw.zip system\
-if errorlevel 1 echo 无法生成刷机补丁包。& pause & exit /b
+if errorlevel 1 echo   无法生成刷机补丁包。& pause & exit /b
 signapk Binary\testkey.x509.pem Binary\testkey.pk8 BreventPatchRaw.zip BreventPatch.zip
-if errorlevel 1 echo 无法签名刷机补丁包。& pause & exit /b
+if errorlevel 1 echo   无法签名刷机补丁包。& pause & exit /b
+
 del /q BreventPatchRaw.zip
 rd /s/q system
-
-echo.
-echo =================================================
-echo   清理临时文件。。。
-echo.
-
-if exist apk rd /s/q apk
-if exist services rd /s/q services
-if exist classes.dex del /q classes.dex
-
-if "!UseAdb!"=="1" (
-	if exist framework rd /s/q framework
-)
 
 if "!UseAdb!"=="1" (
 	echo.
@@ -262,13 +291,13 @@ if "!UseAdb!"=="1" (
 	echo.
 
 	adb push services.jar /sdcard/
-	if errorlevel 1 echo 上传services.jar到/sdcard/失败。& call :UploadError
+	if errorlevel 1 echo 上传services.jar到/sdcard/失败。& call :PushError
 
 	adb push BreventRestore.zip /sdcard/
-	if errorlevel 1 echo 上传BreventRestore.zip到/sdcard/失败。& call :UploadError
+	if errorlevel 1 echo 上传BreventRestore.zip到/sdcard/失败。& call :PushError
 
 	adb push BreventPatch.zip /sdcard/
-	if errorlevel 1 echo 上传BreventPatch.zip到/sdcard/失败。& call :UploadError
+	if errorlevel 1 echo 上传BreventPatch.zip到/sdcard/失败。& call :PushError
 
 	:CHECK_ROOT
 	adb shell su -c 'chmod 666 /data/data/com.android.providers.contacts/databases/contacts2.db'
@@ -289,33 +318,56 @@ if "!UseAdb!"=="1" (
 	)
 
 	adb shell su -c 'mount -o rw,remount /system'
-	if errorlevel 1 echo 加载system分区失败。& call :UploadError
+	if errorlevel 1 echo   加载system分区失败。& call :PushError
 	adb shell su -c 'cp -f /sdcard/services.jar /system/framework/'
-	if errorlevel 1 echo 拷贝services.jar失败。& call :UploadError
+	if errorlevel 1 echo   拷贝services.jar失败。& call :PushError
 	adb shell su -c 'chmod 644 /system/framework/services.jar'
-	if errorlevel 1 echo 修改权限失败。& call :UploadError
+	if errorlevel 1 echo   修改services.jar权限失败。& call :PushError
 
+	if exist "!servicesOdexPath!" (
+		adb shell su -c 'rm -f !servicesOdexMobilePath!'
+		if errorlevel 1 echo   删除services.odex失败。& call :PushError
+	)
+)
+
+echo.
+echo =================================================
+echo   清理临时文件。。。
+echo.
+
+if exist apk rd /s/q apk
+if exist services rd /s/q services
+if exist classes.dex del /q classes.dex
+
+if "!UseAdb!"=="1" (
+	if exist framework rd /s/q framework
+)
+
+if "!UseAdb!"=="1" (
 	echo.
 	echo =================================================
 	echo   完成！记得重启手机。
+	echo.
+	echo   如果无法正常启动可以刷BreventRestore.zip恢复。
 	echo.
 	pause
 ) else (
 	echo.
 	echo =================================================
-	echo   完成！请自行食用services.jar。
+	echo   完成！请自行刷BreventPatch.zip或拷贝services.jar，可能还需要删除services.odex。
+	echo.
+	echo   如果无法正常启动可以刷BreventRestore.zip恢复。
 	echo.
 	pause
 )
 
 goto :EOF
-:UploadError
+:PushError
 setlocal
 echo.
-echo   因为rom的限制，无法自动上传services.jar。请手动拷贝services.jar到/system/framework/，或者使用刷机包BrenventPatch.zip。
+echo   因为rom的限制，无法自动上传services.jar。请使用刷机包BrenventPatch.zip，或者手动拷贝services.jar到/system/framework/，可能还需要删除services.odex。
 echo.
-echo   按任意键退出。。。
-pause>nul
+pause
 exit /b
 (endlocal)
 goto :EOF
