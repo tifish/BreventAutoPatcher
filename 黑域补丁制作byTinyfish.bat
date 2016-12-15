@@ -87,13 +87,10 @@ echo =================================================
 echo   清理文件。。。
 echo.
 
-if exist "apk" rd /s/q "apk"
-if exist "services" rd /s/q "services"
-if exist "classes.dex" del /q "classes.dex"
-if exist "services.jar" del /q "services.jar"
+FastCopy /cmd=delete /no_ui "apk" "services" "classes.dex" "services.jar"
 
 if "!UseAdb!"=="1" (
-	if exist "framework" rd /s/q "framework"
+	FastCopy /cmd=delete /no_ui "framework"
 )
 
 if "!UseAdb!"=="1" (
@@ -183,7 +180,7 @@ echo   生成刷机恢复包BreventRestore.zip。。。
 echo.
 
 copy /y "Package\Update.zip" "BreventRestoreRaw.zip"
-if exist "system" rd /s/q "system"
+FastCopy /cmd=delete /no_ui "system"
 md "system\framework"
 
 copy /y "framework\services.jar" "system\framework\\"
@@ -198,7 +195,7 @@ signapk "Binary\testkey.x509.pem" "Binary\testkey.pk8" "BreventRestoreRaw.zip" "
 if errorlevel 1 echo   无法签名刷机补丁包。& pause & exit /b
 
 del /q "BreventRestoreRaw.zip"
-rd /s/q "system"
+FastCopy /cmd=delete /no_ui "system"
 
 if exist "!servicesOdexPath!" (
 	echo.
@@ -260,7 +257,7 @@ echo   生成刷机补丁包BreventPatch.zip。。。
 echo.
 
 copy /y "Package\Update.zip" "BreventPatchRaw.zip"
-if exist "system" rd /s/q "system"
+FastCopy /cmd=delete /no_ui "system"
 md "system\framework"
 copy /y "services.jar" "system\framework\\"
 
@@ -270,7 +267,7 @@ signapk "Binary\testkey.x509.pem" "Binary\testkey.pk8" "BreventPatchRaw.zip" "Br
 if errorlevel 1 echo   无法签名刷机补丁包。& pause & exit /b
 
 del /q "BreventPatchRaw.zip"
-rd /s/q "system"
+FastCopy /cmd=delete /no_ui "system"
 
 if "!UseAdb!"=="1" (
 	echo.
@@ -335,12 +332,10 @@ echo =================================================
 echo   清理临时文件。。。
 echo.
 
-if exist "apk" rd /s/q "apk"
-if exist "services" rd /s/q "services"
-if exist "classes.dex" del /q "classes.dex"
+FastCopy /cmd=delete /no_ui "apk" "services" "classes.dex"
 
 if "!UseAdb!"=="1" (
-	if exist "framework" rd /s/q "framework"
+	FastCopy /cmd=delete /no_ui "framework"
 )
 
 if "!UseAdb!"=="1" (
