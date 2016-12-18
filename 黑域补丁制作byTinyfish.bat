@@ -126,6 +126,8 @@ echo =================================================
 echo   检测services.odex。。。
 echo.
 
+if "!androidVersion!"=="4" echo   Android 4.x不需要处理services.odex。 & goto :SKIP_SERVICES_ODEX
+
 cd "framework"
 for /f "tokens=*" %%a in ('dir /b /s services.odex 2^>nul') do set "servicesOdexPath=%%a"
 cd "%~dp0"
