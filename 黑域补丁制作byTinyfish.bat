@@ -174,8 +174,6 @@ echo.
 
 :SKIP_SERVICES_ODEX
 
-copy /y "framework\services.jar" ".\\"
-
 echo.
 echo =================================================
 echo   生成刷机恢复包BreventRestore.zip。。。
@@ -250,6 +248,7 @@ echo   正在输出打过补丁的services.jar。。。
 echo.
 smali-2.2b4 a -o "classes.dex" "services"
 if errorlevel 1 echo   输出classes.dex出错。& pause & exit /b
+copy /y "framework\services.jar" ".\\"
 zip "services.jar" "classes.dex"
 if errorlevel 1 echo   打包classes.dex出错。& pause & exit /b
 
