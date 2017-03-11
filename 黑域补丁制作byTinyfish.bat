@@ -5,11 +5,11 @@ color 3f
 cd /d "%~dp0"
 set "path=%~dp0Binary;!path!"
 
-title 黑域补丁自动制作 4.2 by Tinyfish
+title 黑域补丁自动制作 4.3 by Tinyfish
 echo =================================================
 echo   此脚本一键制作黑域内核补丁，功能包括：
 echo   * 自动上传下载手机中的内核文件。
-echo   * 不需要额外安装Python和JDK库。
+echo   * 不需要额外安装Python，提示下载JRE库。
 echo   * 自动安装adb驱动。
 echo   * 检测adb root权限。
 echo   * 智能区分处理jar和odex的情况。
