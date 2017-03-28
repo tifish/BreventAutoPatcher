@@ -1,2 +1,13 @@
-# BreventAutoPatcher
-Automatically patch services.jar for Brevent.
+# 黑域补丁自动制作 4.3 by Tinyfish
+=================================================
+此脚本一键制作黑域（Brevent）内核补丁，功能包括：
+* 自动上传下载手机中的内核文件。
+* 不需要额外安装Python，提示下载JRE库。
+* 自动安装adb驱动。
+* 检测adb root权限。
+* 智能区分处理jar和odex的情况。
+* 支持Android 4.x~7.x。
+* 安装黑域app。
+* 清理临时文件。
+* 支持手工制作补丁。
+* 自动生成刷机补丁包和恢复包。
