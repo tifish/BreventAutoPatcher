@@ -3,7 +3,7 @@ setlocal EnableExtensions EnableDelayedExpansion
 color 3f
 
 cd /d "%~dp0"
-set "path=%~dp0Binary;!path!"
+set "path=%~dp0Binary;%~dp0jre\bin;!path!"
 
 title 黑域补丁自动制作 4.4 by Tinyfish
 echo =================================================
@@ -191,7 +191,7 @@ if exist "!servicesOdexPath!" (
 
 zip -r "BreventRestoreRaw.zip" "system\\"
 if errorlevel 1 echo   无法生成刷机恢复包。& pause & exit /b
-signapk "Binary\testkey.x509.pem" "Binary\testkey.pk8" "BreventRestoreRaw.zip" "BreventRestore.zip"
+java -jar "%~dp0Binary\signapk.jar" "Binary\testkey.x509.pem" "Binary\testkey.pk8" "BreventRestoreRaw.zip" "BreventRestore.zip"
 if errorlevel 1 echo   无法签名刷机补丁包。& pause & exit /b
 
 del /q "BreventRestoreRaw.zip"
@@ -203,14 +203,14 @@ if exist "!servicesOdexPath!" (
 	echo   正在把services.odex转成smali。。。
 	echo.
 	if "!androidVersion!"=="5" (
-		oat2dex boot "!bootOatPath!"
+		java -jar "%~dp0Binary\oat2dex.jar" boot "!bootOatPath!"
 		if errorlevel 1 echo   转换boot.oat出错。& pause & exit /b
-		oat2dex "!servicesOdexPath!" "!bootOatDir!\dex"
+		java -jar "%~dp0Binary\oat2dex.jar" "!servicesOdexPath!" "!bootOatDir!\dex"
 		if errorlevel 1 echo   转换services.odex出错。& pause & exit /b
-		baksmali-2.2b4 d "!servicesOdexDir!\services.dex" -o "services"
+		java -jar "%~dp0Binary\baksmali-2.2b4.jar" d "!servicesOdexDir!\services.dex" -o "services"
 		if errorlevel 1 echo   转换services.dex出错。& pause & exit /b
 	) else (
-		baksmali-2.2b4 x -d "!bootOatDir!" "!servicesOdexPath!" -o "services"
+		java -jar "%~dp0Binary\baksmali-2.2b4.jar" x -d "!bootOatDir!" "!servicesOdexPath!" -o "services"
 		if errorlevel 1 echo   转换odex出错。& pause & exit /b
 	)
 ) else (
@@ -218,7 +218,7 @@ if exist "!servicesOdexPath!" (
 	echo =================================================
 	echo   正在把services.jar转成smali。。。
 	echo.
-	baksmali-2.2b4 d "framework\services.jar" -o "services"
+	java -jar "%~dp0Binary\baksmali-2.2b4.jar" d "framework\services.jar" -o "services"
 	if errorlevel 1 echo   转换services.jar出错。& pause & exit /b
 )
 
@@ -226,7 +226,7 @@ echo.
 echo =================================================
 echo   正在把apk转成smali。。。
 echo.
-baksmali-2.2b4 d "Package\Brevent.apk" -o "apk"
+java -jar "%~dp0Binary\baksmali-2.2b4.jar" d "Package\Brevent.apk" -o "apk"
 
 echo.
 echo =================================================
@@ -246,7 +246,7 @@ echo.
 echo =================================================
 echo   正在输出打过补丁的services.jar。。。
 echo.
-smali-2.2b4 a -o "classes.dex" "services"
+java -jar "%~dp0Binary\smali-2.2b4.jar" a -o "classes.dex" "services"
 if errorlevel 1 echo   输出classes.dex出错。& pause & exit /b
 copy /y "framework\services.jar" ".\\"
 zip "services.jar" "classes.dex"
@@ -264,7 +264,7 @@ copy /y "services.jar" "system\framework\\"
 
 zip -r "BreventPatchRaw.zip" "system\\"
 if errorlevel 1 echo   无法生成刷机补丁包。& pause & exit /b
-signapk "Binary\testkey.x509.pem" "Binary\testkey.pk8" "BreventPatchRaw.zip" "BreventPatch.zip"
+java -jar "%~dp0Binary\signapk.jar" "Binary\testkey.x509.pem" "Binary\testkey.pk8" "BreventPatchRaw.zip" "BreventPatch.zip"
 if errorlevel 1 echo   无法签名刷机补丁包。& pause & exit /b
 
 del /q "BreventPatchRaw.zip"
